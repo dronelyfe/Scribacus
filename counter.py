@@ -49,7 +49,7 @@ def _iterate(folder, folder_path, recon):
 
 def _WPM_calculate(wordcount, duration):
     """Calculate words per minute given a word count and duration."""
-    if duration < 60.0:
+    if duration <= 60.0:
         frac_dur = duration/60.0
         WPM = wordcount/frac_dur
         return WPM
