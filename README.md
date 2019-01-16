@@ -5,10 +5,10 @@ A tool for transcribing and getting a words-per-minute count from speech in .wav
 transcribing and counting words so you don't have to!
 
 # Usage
-`python counter.py '/path/to/folder'`
+`python scribacus.py '/path/to/folder'`
 
 on Windows, it looks more like:
-`python counter.py 'drive:\path\to\folder'`
+`python scribacus.py 'drive:\path\to\folder'`
 
 # Dependencies
 
