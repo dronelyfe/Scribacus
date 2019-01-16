@@ -13,3 +13,6 @@ on Windows, it looks more like:
 # Dependencies
 
 Scribacus uses SpeechRecognition(which relies on CMU PocketSphinx for word recognition), and Librosa for grabbing information about audio files.
+To make things a bit easier, `util/scribacus-install-dependencies.py` can sort the dependencies out for you. It only assumes that you have `pip`.
+simply `cd` into `util/`
+and `python scribacus-install-dependencies.py`
