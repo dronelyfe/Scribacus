@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import speech_recognition as asr
+import librosa.core as rosa
 import subprocess
 import sys
 import os
@@ -17,38 +18,45 @@ def main():
     print("Success.")
     _iterate(AUDIO_FOLDER, folder_path, recon)
 
+
 def _iterate(folder, folder_path, recon):
     """Iterate through folder of .wav files"""
     print("Iterating...")
     for file in folder:
         if file.endswith(".wav"):
-            with asr.AudioFile(path.join(folder_path, file)) as source:
+            full_path = path.join(folder_path, file)
+            with asr.AudioFile(full_path) as source:
                 audio = recon.record(source)
                 try:
                     print("Analyzing", file)
+                    duration = rosa.get_duration(filename=full_path)
                     templist = recon.recognize_sphinx(audio)
                     templist = templist.split()
-                    print("Word Count:", len(templist))
-
+                    wordcount = len(templist)
+                    print("Word Count:", wordcount)
+                    print("Duration:", duration, "seconds.")
+                    print("Words Per Minute:",
+                          _WPM_calculate(wordcount, duration))
                     print(templist)
                     print("------------------------")
-                except sr.UnknownValueError:
+                except asr.UnknownValueError:
                     print("unintelligible audio")
 
                 except asr.RequestError as e:
                     print("sphinx error; {0}".format(e))
     print("Completed.")
 
-def _get_duration(filepath):
-    args = ("ffprobe", "-hide_banner",
-            "-print_format flat", "-show_entries",
-            "format=duration", "-i", filepath)
-    try:
-        result = subprocess.Popen(args,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        output = result.communicate()
-        print(output[0])
-    except subprocess.CalledProcessError:
-        pass
+
+def _WPM_calculate(wordcount, duration):
+
+    if duration < 60.0:
+        frac_dur = duration/60.0
+        WPM = wordcount/frac_dur
+        return WPM
+    elif duration > 60.0:
+        frac_dur = 60.0/duration
+        WPM = frac_dur*wordcount
+        return WPM
+
 
 main()
