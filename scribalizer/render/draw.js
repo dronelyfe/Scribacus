@@ -1,5 +1,3 @@
-const spawn = require ('child_process').spawn;
-
 function setup() {
 
   createCanvas(windowWidth, windowHeight)
@@ -8,7 +6,7 @@ function setup() {
   background(0)
 
   input = createFileInput(onFileLoad)
-  input.position(50, 50)
+  input.position(0, 0)
 
 }
 
@@ -19,26 +17,6 @@ function draw() {
 }
 
 function mousePressed() {
-
-}
-
-function onFileLoad(file) {
-
-  var file_path = file.file.path;
-
-  const scribacus = spawn('python3',["/home/dronelyfe/Documents/Scribacus/scribalizer/render/scribacus.py", file_path]);
-  scribacus.stdout.on('data', (data) => {
-    console.log(`stdout: ${data}`);
-  });
-
-  scribacus.stderr.on('data', (data) => {
-    console.log(`stderr: ${data}`);
-  });
-
-
-  scribacus.on('close', (code) => {
-    console.log(`child process exited with code ${code}`);
-  });
 
 }
 
