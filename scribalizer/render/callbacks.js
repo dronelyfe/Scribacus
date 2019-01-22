@@ -1,4 +1,5 @@
 const spawn = require ('child_process').spawn;
+const client = require('pg');
 
 function onFileLoad(file) {
 
@@ -17,5 +18,9 @@ function onFileLoad(file) {
   scribacus.on('close', (code) => {
     console.log(`child process exited with code ${code}`);
   });
+
+}
+
+function onCompleteAnalysis(file_path) {
 
 }

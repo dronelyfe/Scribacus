@@ -20,8 +20,8 @@ def main():
 
 def _analyze(file_path, recon):
     """Iterate through folder of .wav files"""
-    if file_path.endswith(".wav"):
-        norm_path = path.normpath(file_path)
+    norm_path = path.normpath(file_path)
+    if norm_path.endswith(".wav") and _check_duplicates(norm_path) is False:
         with asr.AudioFile(norm_path) as source:
             audio = recon.record(source)
             try:
@@ -29,6 +29,7 @@ def _analyze(file_path, recon):
                 duration = rosa.get_duration(filename=norm_path)
                 templist = recon.recognize_sphinx(audio)
                 templist = templist.split()
+                templist = " ".join(templist)
                 wordcount = len(templist)
                 print("Word Count:", wordcount)
                 print("Duration:", duration, "seconds.")
@@ -55,9 +56,23 @@ def _WPM_calculate(wordcount, duration):
         WPM = frac_dur*wordcount
         return WPM
 
+def _check_duplicates(path):
+    connection = psql.connect("dbname=asrdatadb user=dronelyfe")
+    cursor = connection.cursor()
+    cursor.execute("SELECT file_path FROM asr_data WHERE file_path = %s", (path,))
+    desc = cursor.rowcount
+    if desc == 0:
+        cursor.close()
+        connection.close()
+        return False
+    else:
+        cursor.close()
+        connection.close()
+        print("Element already in DataBase.")
+        return True
 
 def _store_data(file_path, text_data):
-    connection = psql.connect("dbname=yourdbname user=yourusername")
+    connection = psql.connect("dbname=yourdb user=youruser")
     cursor = connection.cursor()
     cursor.execute("INSERT INTO asr_data (file_path, data) VALUES (%s, %s)",
         (file_path, text_data))
