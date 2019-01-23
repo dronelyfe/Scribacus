@@ -57,7 +57,7 @@ def _WPM_calculate(wordcount, duration):
         return WPM
 
 def _check_duplicates(path):
-    connection = psql.connect("dbname=asrdatadb user=dronelyfe")
+    connection = psql.connect("dbname=yourdb user=postgres")
     cursor = connection.cursor()
     cursor.execute("SELECT file_path FROM asr_data WHERE file_path = %s", (path,))
     desc = cursor.rowcount
@@ -72,7 +72,7 @@ def _check_duplicates(path):
         return True
 
 def _store_data(file_path, text_data):
-    connection = psql.connect("dbname=yourdb user=youruser")
+    connection = psql.connect("dbname=yourdb user=postgres")
     cursor = connection.cursor()
     cursor.execute("INSERT INTO asr_data (file_path, data) VALUES (%s, %s)",
         (file_path, text_data))

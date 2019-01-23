@@ -22,5 +22,5 @@ function onFileLoad(file) {
 }
 
 function onCompleteAnalysis(file_path) {
-
+//spawn new child process for scribalizer.py, retrieve results and pass to draw
 }
