@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 
 import json
-import subprocess
 import sys
-import os
-from os import path
 
 import psycopg2 as psql
 import spacy
-from objdict import ObjDict
 
 def main():
     file_path = sys.argv[1]
@@ -34,16 +30,20 @@ def _structure_data(doc, path):
         features[i] = {"text": item.lemma_, 
                         "pos": item.pos_,
                         "tag": item.tag_}
-
-    feature_output = json.dumps(features, indent=4, sort_keys=True)
-    # store nlp data in DB for posterity, can't be grabbed by node-postgres :(
-    connection = psql.connect("dbname=asrdb user=postgres")
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO asr_data (file_path, nlp_data) VALUES (%s, %s)", 
-                    (path, feature_output))
-    cursor.close()
-    connection.close() 
     # using stdout to pipe straight json string to the app.
+    feature_output = json.dumps(features, indent=4, sort_keys=True)
     print(feature_output)
+
+    # store nlp data in DB for posterity, can't be grabbed by node-postgres :(
+    # connection = psql.connect("dbname=asrdb user=postgres")
+    # cursor = connection.cursor()
+    # cursor.execute("INSERT INTO asr_data (file_path, nlp_data) VALUES (%s, %s)", 
+    #                 (path, feature_output))
+    # connection.commit()
+    # cursor.close()
+    # connection.close() 
+
+
+
 
 main()

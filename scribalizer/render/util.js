@@ -28,10 +28,14 @@ function onAnalyze(file_path) {
   
   var scribalizer_path = dataPath + '/scribalizer.py'
   const scribalizer= spawn('python3', [scribalizer_path, file_path]);
-  
+  let chunks = [];
+
   scribalizer.stdout.on('data', (data) => {
-    storedSpeech = JSON.parse(data);    
-    console.log(storedSpeech);
+      chunks.push(data);
+  }).on('end', function() {
+    let tempdata = Buffer.concat(chunks)
+    storedSpeech = JSON.parse(tempdata)
+    console.log(storedSpeech)
   });
 
   scribalizer.stderr.on('data', (data) => {

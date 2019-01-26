@@ -2,7 +2,6 @@
 import psycopg2 as psql
 import speech_recognition as asr
 import librosa.core as rosa
-import subprocess
 import sys
 import os
 from os import path
