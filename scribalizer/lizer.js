@@ -1,7 +1,4 @@
 const { app, BrowserWindow } = require('electron')
-
-// const _ = require('electron-reload')(__dirname + '/public')
-
 const path = require('path')
 const url = require('url')
 

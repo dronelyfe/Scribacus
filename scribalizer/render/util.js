@@ -1,49 +1,57 @@
-const spawn = require ('child_process').spawn;
-var storedSpeech;
 
-function onFileLoad(file) {
+function processFile(file) {
+  const spawn = require ('child_process').spawn;
+  var storedSpeech;
 
-  var file_path = file.file.path;
-  var scribacus_path = dataPath + '/scribacus.py'
-  const scribacus = spawn('python3', [scribacus_path, file_path]);
-  scribacus.stdout.on('data', (data) => {
-    console.log(`stdout: ${data}`);
-  });
+  function onFileLoad(file) {
 
-  scribacus.stderr.on('data', (data) => {
-    console.log(`stderr: ${data}`);
-  });
+    var file_path = file.file.path;
+    var scribacus_path = dataPath + '/scribacus.py'
+    const scribacus = spawn('python3', [scribacus_path, file_path]);
+    scribacus.stdout.on('data', (data) => {
+      console.log(`stdout: ${data}`);
+    });
+
+    scribacus.stderr.on('data', (data) => {
+      console.log(`stderr: ${data}`);
+    });
 
 
-  scribacus.on('close', (code) => {
-    console.log(`child process exited with code ${code}`);
-    if (code == 0){
-      onAnalyze(file_path);
-    }
-  });
+    scribacus.on('close', (code) => {
+      console.log(`child process exited with code ${code}`);
+      if (code == 0){
+        onAnalyze(file_path);
+      }
+    });
 
-}
+  }
 
-function onAnalyze(file_path) {
-  
-  var scribalizer_path = dataPath + '/scribalizer.py'
-  const scribalizer= spawn('python3', [scribalizer_path, file_path]);
-  let chunks = [];
+  function onAnalyze(file_path) {
+    
+    var scribalizer_path = dataPath + '/scribalizer.py'
+    const scribalizer= spawn('python3', [scribalizer_path, file_path]);
+    let chunks = [];
 
-  scribalizer.stdout.on('data', (data) => {
-      chunks.push(data);
-  }).on('end', function() {
-    let tempdata = Buffer.concat(chunks)
-    storedSpeech = JSON.parse(tempdata)
-    console.log(storedSpeech)
-  });
+    scribalizer.stdout.on('data', (data) => {
+        chunks.push(data);
+    }).on('end', function() {
+      let tempdata = Buffer.concat(chunks)
+      storedSpeech = JSON.parse(tempdata)
+      console.log(storedSpeech)
+    });
 
-  scribalizer.stderr.on('data', (data) => {
-    console.log(`stderr: ${data}`);
-  });
+    scribalizer.stderr.on('data', (data) => {
+      console.log(`stderr: ${data}`);
+    });
 
-  scribalizer.on('close', (code) => {
-    console.log(`child process exited with code ${code}`);
-  });
+    scribalizer.on('close', (code) => {
+      console.log(`child process exited with code ${code}`);
+      if (code == 0) {
+      }
+    });
 
+  }
+
+  onFileLoad(file);
+  return storedSpeech;
 }

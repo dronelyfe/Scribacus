@@ -1,60 +1,75 @@
-var currentspeech;
-var markov_aurelius;
-var meditations;
-var sentence;
-var value = 0.0;
-var speed = 1.2;
-var max = 255
+var thisP5 = new p5 ( function( sketch ) {
+  var markov_aurelius;
+  var sentence;
+  //text rendering variables
+  var value = 0.0;
+  var speed = 1.2;
+  var speechLoaded = false;
 
-function setup() {
+  var speechData;
 
-  markov_aurelius = new RiMarkov(4, true, false);
-  textloc = dataPath + '/marcusaurelius.txt';
-  markov_aurelius.loadFrom(textloc, function(){
-    console.log(markov_aurelius);
-    sentence = sentenceGen();
-  });
+  sketch.setup = function() {
 
-  createCanvas(windowWidth, windowHeight);
-  noStroke();
-  background(0);
-  input = createFileInput(onFileLoad);
-  input.position(0, 0);
+    markov_aurelius = new RiMarkov(4, true, false);
+    textloc = dataPath + '/marcusaurelius.txt';
+    
+    markov_aurelius.loadFrom(textloc, function(){
+      console.log(markov_aurelius);
+      sentence = sketch.sentenceGen();
+    });
 
-}
+    sketch.createCanvas(window.innerWidth, window.innerHeight);
+    sketch.noStroke();
+    sketch.background(0);
 
-function draw() {
+    input = sketch.createFileInput(function(file){
+      speechLoaded = false;
+      speechData = processFile(file); 
+      if (speechData !== null) {
+        speechLoaded = true;
+      }
+    });
+    input.position(0, 0);
+  };
 
-  background(0);
-  textSize(30);
-  drawTextIn();
+  sketch.draw = function() {
 
-};
+    sketch.background(0);
+    sketch.textSize(30);
 
-function windowResized() {
+    if (speechLoaded == false) {
+      sketch.drawTextIn();
+    }
+    else {
+      sketch.drawTextOut();
+    }
+  };
 
-  resizeCanvas(windowWidth, windowHeight);
+  sketch.windowResized = function() {
 
-}
+    sketch.resizeCanvas(window.innerWidth, window.innerHeight);
 
-function drawTextIn() {
-  textAlign(CENTER);
-  textSize(30);
-  value += speed;
-  fill(255, value);
-  text(sentence, windowWidth/2, windowHeight/2);
-  text(" - Markov Aurelius, Probably", windowWidth/2, windowHeight/1.8);
-}
+  };
 
-function drawTextOut() {
-  textAlign(CENTER);
-  textSize(30);
-  value -= speed;
-  fill(255, value);
-  text(sentence, windowWidth/2, windowHeight/2);
-  text(" - Markov Aurelius, Probably", windowWidth/2, windowHeight/1.8);
-}
+  sketch.drawTextIn = function() {
+    sketch.textAlign(sketch.CENTER);
+    sketch.textSize(30);
+    value += speed;
+    sketch.fill(255, value);
+    sketch.text(sentence, window.innerWidth/2, window.innerHeight/2);
+    sketch.text(" - Markov Aurelius, Probably", window.innerWidth/2, window.innerHeight/1.8);
+  };
 
-function sentenceGen() {
-  return markov_aurelius.generateSentences(1)
-}
+  sketch.drawTextOut = function() {
+    sketch.textAlign(sketch.CENTER);
+    sketch.textSize(30);
+    value -= speed;
+    sketch.fill(255, value);
+    sketch.text(sentence, window.innerWidth/2, window.innerHeight/2);
+    sketch.text(" - Markov Aurelius, Probably", window.innerWidth/2, window.innerHeight/1.8);
+  };
+
+  sketch.sentenceGen = function() {
+    return markov_aurelius.generateSentences(1)
+  };
+});
