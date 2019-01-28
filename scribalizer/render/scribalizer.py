@@ -24,26 +24,23 @@ def _analyze(path):
 def _structure_data(doc, path):
 
     features = {}
-    features.setdefault(0, {"text", "pos", "tag"})
+    features.setdefault(0, {"text", "dep", "pos"})
     
     for i, item in enumerate(doc):
         features[i] = {"text": item.lemma_, 
-                        "pos": item.pos_,
-                        "tag": item.tag_}
+                        "dep": item.dep_,
+                        "pos": item.pos_}
     # using stdout to pipe straight json string to the app.
     feature_output = json.dumps(features, indent=4, sort_keys=True)
     print(feature_output)
 
-    # store nlp data in DB for posterity, can't be grabbed by node-postgres :(
-    # connection = psql.connect("dbname=asrdb user=postgres")
+    # store nlp data in DB for depterity, can't be grabbed by node-deptgres :(
+    # connection = psql.connect("dbname=asrdb user=deptgres")
     # cursor = connection.cursor()
     # cursor.execute("INSERT INTO asr_data (file_path, nlp_data) VALUES (%s, %s)", 
     #                 (path, feature_output))
     # connection.commit()
     # cursor.close()
     # connection.close() 
-
-
-
 
 main()

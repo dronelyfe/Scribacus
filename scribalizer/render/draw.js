@@ -6,10 +6,12 @@ var thisP5 = new p5 ( function( sketch ) {
   //markov_aurelius variables
   var markov_aurelius;
   var sentence;
+  var loadFade = true;
   
   //text rendering variables
-  var value = 0.0;
+  var textVal = 0.0;
   var speed = 1.2;
+  var max = 240.0;
 
   //speechData holds the JSON of NLP data
   var speechLoaded = false;
@@ -20,7 +22,7 @@ var thisP5 = new p5 ( function( sketch ) {
   //load markov_aurelius, create canvas, create DOM elements
   sketch.setup = function() {
 
-    markov_aurelius = new RiMarkov(4, true, false);
+    markov_aurelius = new RiMarkov(3, true, false);
     textloc = dataPath + '/marcusaurelius.txt';
     
     markov_aurelius.loadFrom(textloc, function() {
@@ -41,6 +43,9 @@ var thisP5 = new p5 ( function( sketch ) {
 
     input.position(0, 0);
 
+    grouper = sketch.createRadio();
+    grouper.option(); 
+
     
   };
 
@@ -49,16 +54,27 @@ var thisP5 = new p5 ( function( sketch ) {
 
     sketch.background(bg);
     sketch.textSize(30);
-
-    if (speechLoaded == false) {
+    // sketch.text(sketch.frameRate(), window.innerWidth - 50, 50);
+    if (speechLoaded == false && loadFade == true && textVal != max ) {
       sketch.drawTextIn();
+      if (textVal > 255.0) {
+        loadFade = false;
+      }
     }
 
-    else if (value > 0.0) {
+    else if (speechLoaded == false && loadFade == false) {
+      sketch.drawTextOut();
+      if (textVal <= 1) {
+        loadFade = true;
+        sentence = sketch.sentenceGen();
+      }
+    }
+
+    else if (speechLoaded == true && textVal > 0.0) {
       sketch.drawTextOut();
     }
 
-    else if (value < 0) {
+    else if (speechLoaded == true && textVal < 0) {
       for (var i = 0; i < wordList.length; i++) {
         wordList[i].renderIn();
       }
@@ -76,8 +92,8 @@ var thisP5 = new p5 ( function( sketch ) {
   sketch.drawTextIn = function() {
     sketch.textAlign(sketch.CENTER);
     sketch.textSize(30);
-    value += speed;
-    sketch.fill(255, value);
+    textVal += speed;
+    sketch.fill(255, textVal);
     sketch.text(sentence, window.innerWidth/2, window.innerHeight/2);
     sketch.text(" - Markov Aurelius, Probably", window.innerWidth/2, window.innerHeight/1.8);
   };
@@ -86,15 +102,19 @@ var thisP5 = new p5 ( function( sketch ) {
   sketch.drawTextOut = function() {
     sketch.textAlign(sketch.CENTER);
     sketch.textSize(30);
-    value -= speed;
-    sketch.fill(255, value);
+    textVal -= speed;
+    sketch.fill(255, textVal);
     sketch.text(sentence, window.innerWidth/2, window.innerHeight/2);
     sketch.text(" - Markov Aurelius, Probably", window.innerWidth/2, window.innerHeight/1.8);
   };
 
   //generate new sentence for markov_aurelius
   sketch.sentenceGen = function() {
-    return markov_aurelius.generateSentences(1)
+    var sentenceArray = [];
+    for (var i = 0; i < 10; i++) {
+      sentenceArray.push(markov_aurelius.generateSentence());
+    }
+    return sketch.random(sentenceArray)
   };
 
   //setter function for processFile to use for asynchronously passing speech data
@@ -108,7 +128,7 @@ var thisP5 = new p5 ( function( sketch ) {
   //create new instance of word for each token in NLP JSON
   sketch.buildWordArray = function(json) {
     for (i in json) {
-      wordList.push(new word(json[i].text, json[i].tag, json[i].pos));
+      wordList.push(new word(json[i].text, json[i].dep, json[i].pos));
     };
   };
 
@@ -119,17 +139,18 @@ var thisP5 = new p5 ( function( sketch ) {
   //word class definition
  class word {
     //drawing variables, location, destination, opacity, speed, and whether it is to be shown or not.
-    constructor(txt, tg, ps) {
+    constructor(txt, dp, ps) {
       this.focus = [window.innerWidth/2, window.innerHeight/2]
+      this.range = 400;
       this.show = true;
-      this.coord = [sketch.random((this.focus[0] - 400), (this.focus[0] + 400)), sketch.random((this.focus[1] - 400), (this.focus[1] + 400))];
+      this.coord = [sketch.random((this.focus[0] - this.range), (this.focus[0] + this.range)), sketch.random((this.focus[1] - this.range), (this.focus[1] + this.range))];
       this.speed = sketch.random(0.2, 1.0);
-      this.dest = [sketch.random((this.focus[0] - 400), (this.focus[0] + 400)), sketch.random((this.focus[1] - 400), (this.focus[1] + 400))];
+      this.dest = [sketch.random((this.focus[0] - this.range), (this.focus[0] + this.range)), sketch.random((this.focus[1] - this.range), (this.focus[1] + this.range))];
       this.opac = 0;
       this.opacmax = sketch.random(50, 225);
       //data from returned NLP JSON
       this.text = txt;
-      this.tag = tg;
+      this.dep = dp;
       //refers to position in speech, not position in sketch. that is the property of this.coord.
       this.pos = ps;
     }
@@ -154,8 +175,12 @@ var thisP5 = new p5 ( function( sketch ) {
         }
       }
       if (sketch.dist(this.coord[0], this.coord[1], this.dest[0], this.dest[1]) <= 1.0) {
-        this.setDest(sketch.random((this.focus[0] - 400), (this.focus[0] + 400)), sketch.random((this.focus[1] - 400), (this.focus[1] + 400)))
+        this.setDest(sketch.random((this.focus[0] - this.range), (this.focus[0] + this.range)), sketch.random((this.focus[1] - this.range), (this.focus[1] + this.range)))
       }
+    }
+
+    setRange (range) {
+      this.range = range;
     }
 
     setFocus(x, y) {
