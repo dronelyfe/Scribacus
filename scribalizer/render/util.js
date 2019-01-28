@@ -16,9 +16,7 @@ function processFile(file) {
       console.log(`stderr: ${data}`);
     });
 
-
     scribacus.on('close', (code) => {
-      console.log(`child process exited with code ${code}`);
       if (code == 0){
         onAnalyze(file_path);
       }
@@ -35,9 +33,8 @@ function processFile(file) {
     scribalizer.stdout.on('data', (data) => {
         chunks.push(data);
     }).on('end', function() {
-      let tempdata = Buffer.concat(chunks)
-      storedSpeech = JSON.parse(tempdata)
-      console.log(storedSpeech)
+      let tempdata = Buffer.concat(chunks);
+      storedSpeech = JSON.parse(tempdata);
     });
 
     scribalizer.stderr.on('data', (data) => {
@@ -45,13 +42,12 @@ function processFile(file) {
     });
 
     scribalizer.on('close', (code) => {
-      console.log(`child process exited with code ${code}`);
       if (code == 0) {
+        thisP5.setSpeechData(storedSpeech);
       }
     });
 
   }
 
   onFileLoad(file);
-  return storedSpeech;
 }
