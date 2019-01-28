@@ -10,8 +10,6 @@ var thisP5 = new p5 ( function( sketch ) {
   //text rendering variables
   var value = 0.0;
   var speed = 1.2;
-  var posGroup;
-  var tagGroup;
 
   //speechData holds the JSON of NLP data
   var speechLoaded = false;
@@ -37,10 +35,13 @@ var thisP5 = new p5 ( function( sketch ) {
     //create file input button, with a callback that invokes the analysis scripts
     input = sketch.createFileInput(function(file) {
       speechLoaded = false;
-      processFile(file); 
+      processFile(file);
+      wordList = []; 
     });
 
     input.position(0, 0);
+
+    
   };
 
   //main draw thread, renders things inside canvas
@@ -59,7 +60,7 @@ var thisP5 = new p5 ( function( sketch ) {
 
     else if (value < 0) {
       for (var i = 0; i < wordList.length; i++) {
-        wordList[i].renderCode();
+        wordList[i].renderIn();
       }
     }
   };
@@ -111,16 +112,21 @@ var thisP5 = new p5 ( function( sketch ) {
     };
   };
 
+  sketch.changeWordFoci = function(focus) {
+    
+  }
+
   //word class definition
  class word {
     //drawing variables, location, destination, opacity, speed, and whether it is to be shown or not.
     constructor(txt, tg, ps) {
+      this.focus = [window.innerWidth/2, window.innerHeight/2]
       this.show = true;
-      this.coord = [window.innerWidth/2, window.innerHeight/2];
-      this.speed = 1.2;
-      this.dest = [window.innerWidth/2, window.innerHeight/2];
-      this.opac = 255;
-
+      this.coord = [sketch.random((this.focus[0] - 400), (this.focus[0] + 400)), sketch.random((this.focus[1] - 400), (this.focus[1] + 400))];
+      this.speed = sketch.random(0.2, 1.0);
+      this.dest = [sketch.random((this.focus[0] - 400), (this.focus[0] + 400)), sketch.random((this.focus[1] - 400), (this.focus[1] + 400))];
+      this.opac = 0;
+      this.opacmax = sketch.random(50, 225);
       //data from returned NLP JSON
       this.text = txt;
       this.tag = tg;
@@ -128,11 +134,50 @@ var thisP5 = new p5 ( function( sketch ) {
       this.pos = ps;
     }
 
-    renderCode() {
-          sketch.textAlign(sketch.CENTER);
-          sketch.textSize(30);
-          sketch.fill(255);
-          sketch.text(this.text, this.coord[0], this.coord[1]);
+    updateCoord() {
+      if (sketch.dist(this.coord[0], this.coord[1], this.dest[0], this.dest[1]) > 1.0) {
+        if(this.coord[0] < this.dest[0] && this.coord[1] < this.dest[1]) {
+          this.coord[0] += this.speed;
+          this.coord[1] += this.speed;
+        }
+        else if (this.coord[0] > this.dest[0] && this.coord[1] > this.dest[1]) {
+          this.coord[0] -= this.speed;
+          this.coord[1] -= this.speed;
+        }
+        else if (this.coord[0] > this.dest[0] && this.coord[1] < this.dest[1]) {
+          this.coord[0] -= this.speed;
+          this.coord[1] += this.speed;
+        }
+        else if (this.coord[0] < this.dest[0] && this.coord[1] > this.dest[1]) {
+          this.coord[0] += this.speed;
+          this.coord[1] -= this.speed;
+        }
+      }
+      if (sketch.dist(this.coord[0], this.coord[1], this.dest[0], this.dest[1]) <= 1.0) {
+        this.setDest(sketch.random((this.focus[0] - 400), (this.focus[0] + 400)), sketch.random((this.focus[1] - 400), (this.focus[1] + 400)))
+      }
+    }
+
+    setFocus(x, y) {
+      this.focus[0] = x;
+      this.focus[1] = y;
+    }
+
+    setDest(x, y) {
+      this.dest[0] = x;
+      this.dest[1] = y;
+    }
+
+    renderIn() {
+
+      if (this.opac < this.opacmax) {
+        this.opac += this.speed;
+      }
+      sketch.textAlign(sketch.CENTER);
+      sketch.textSize(30);
+      sketch.fill(255, this.opac);
+      sketch.text(this.text, this.coord[0], this.coord[1]);
+      this.updateCoord();
     }
 
   };
