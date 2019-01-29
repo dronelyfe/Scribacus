@@ -28,8 +28,8 @@ def _analyze(file_path, recon):
                 duration = rosa.get_duration(filename=norm_path)
                 templist = recon.recognize_sphinx(audio)
                 templist = templist.split()
-                templist = " ".join(templist)
                 wordcount = len(templist)
+                templist = " ".join(templist)
                 print("Word Count:", wordcount)
                 print("Duration:", duration, "seconds.")
                 print("Words Per Minute:",

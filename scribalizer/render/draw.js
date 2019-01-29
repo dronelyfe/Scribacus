@@ -1,13 +1,10 @@
-var thisP5 = new p5 ( function( sketch ) {
-  
-  //drawing constants, like bg colour
-  const bg = 0; 
+var thisP5 = new p5 ( function( sketch ) { 
 
   //markov_aurelius variables
   var markov_aurelius;
   var sentence;
   var loadFade = true;
-  
+
   //text rendering variables
   var textVal = 0.0;
   var speed = 1.2;
@@ -17,6 +14,7 @@ var thisP5 = new p5 ( function( sketch ) {
   var speechLoaded = false;
   var speechData;
   var wordList = new Array();
+  var groupings = new Array();
 
   //setup occurs on initialization of p5
   //load markov_aurelius, create canvas, create DOM elements
@@ -32,7 +30,7 @@ var thisP5 = new p5 ( function( sketch ) {
 
     sketch.createCanvas(window.innerWidth, window.innerHeight);
     sketch.noStroke();
-    sketch.background(bg);
+    sketch.background(26,20,35);
 
     //create file input button, with a callback that invokes the analysis scripts
     input = sketch.createFileInput(function(file) {
@@ -42,18 +40,19 @@ var thisP5 = new p5 ( function( sketch ) {
     });
 
     input.position(0, 0);
+    sketch.fill(255);
 
-    grouper = sketch.createRadio();
-    grouper.option(); 
-
-    
+    separator = sketch.createButton('Scribalize!');
+    separator.mousePressed(sketch.separatorTrigger);
+    separator.position(0, 100);
+    separator.hide();
   };
 
   //main draw thread, renders things inside canvas
   sketch.draw = function() {
 
-    sketch.background(bg);
-    sketch.textSize(30);
+    sketch.background(26,20,35);
+    sketch.textSize(20);
     // sketch.text(sketch.frameRate(), window.innerWidth - 50, 50);
     if (speechLoaded == false && loadFade == true && textVal != max ) {
       sketch.drawTextIn();
@@ -78,6 +77,9 @@ var thisP5 = new p5 ( function( sketch ) {
       for (var i = 0; i < wordList.length; i++) {
         wordList[i].renderIn();
       }
+      for (var i = 0; i < groupings.length; i++) {
+        groupings[i].renderGrouping();
+      }
     }
   };
 
@@ -88,12 +90,30 @@ var thisP5 = new p5 ( function( sketch ) {
 
   };
 
+  sketch.separatorTrigger = function () {
+    var tagList = [];
+    for (var i = 0; i < wordList.length; i++) {
+      if (tagList.includes(wordList[i].getPos()) == false) {
+        tagList.push(wordList[i].getPos());
+      }
+    }
+  console.log(tagList);
+  var tagLoc = [sketch.random(window.innerWidth/2 - 450, window.innerWidth/2 + 450), sketch.random(window.innerHeight/2 - 450, window.innerHeight/2 + 450)];
+  groupings = []; 
+    for (var i = 0; i < tagList.length; i++) {
+      sketch.changeWordFoci(tagLoc, tagList[i]);
+      groupings.push(new grouping(tagLoc[0], tagLoc[1], 50));
+      tagLoc = [sketch.random(window.innerWidth/2 - 450, window.innerWidth/2 + 450), sketch.random(window.innerHeight/2 - 450, window.innerHeight/2 + 450)];
+    }
+    console.log(groupings);
+  }
+
   //fade markov_aurelius text in
   sketch.drawTextIn = function() {
     sketch.textAlign(sketch.CENTER);
-    sketch.textSize(30);
+    sketch.textSize(20);
     textVal += speed;
-    sketch.fill(255, textVal);
+    sketch.fill(183, 93, 105, textVal);
     sketch.text(sentence, window.innerWidth/2, window.innerHeight/2);
     sketch.text(" - Markov Aurelius, Probably", window.innerWidth/2, window.innerHeight/1.8);
   };
@@ -101,9 +121,9 @@ var thisP5 = new p5 ( function( sketch ) {
   //fade markov_aurelius text out
   sketch.drawTextOut = function() {
     sketch.textAlign(sketch.CENTER);
-    sketch.textSize(30);
+    sketch.textSize(20);
     textVal -= speed;
-    sketch.fill(255, textVal);
+    sketch.fill(183, 93, 105, textVal);
     sketch.text(sentence, window.innerWidth/2, window.innerHeight/2);
     sketch.text(" - Markov Aurelius, Probably", window.innerWidth/2, window.innerHeight/1.8);
   };
@@ -123,6 +143,7 @@ var thisP5 = new p5 ( function( sketch ) {
     speechLoaded = true;
 
     sketch.buildWordArray(speechData);
+    separator.show();
   };
 
   //create new instance of word for each token in NLP JSON
@@ -132,20 +153,25 @@ var thisP5 = new p5 ( function( sketch ) {
     };
   };
 
-  sketch.changeWordFoci = function(focus) {
-    
+  sketch.changeWordFoci = function(focus, tag) {
+    for (var i = 0; i < wordList.length; i++) {
+       if (wordList[i].getPos() == tag) {
+         wordList[i].setFocus(focus[0], focus[1]);
+         wordList[i].setSpeed(sketch.random(0.2, 1.0));
+       }
+    }
   }
 
   //word class definition
  class word {
     //drawing variables, location, destination, opacity, speed, and whether it is to be shown or not.
     constructor(txt, dp, ps) {
-      this.focus = [window.innerWidth/2, window.innerHeight/2]
-      this.range = 400;
+      this.focus = sketch.createVector(window.innerWidth/2, window.innerHeight/2);
+      this.range = 50;
       this.show = true;
-      this.coord = [sketch.random((this.focus[0] - this.range), (this.focus[0] + this.range)), sketch.random((this.focus[1] - this.range), (this.focus[1] + this.range))];
+      this.coord = sketch.createVector(sketch.random((this.focus.x - this.range), (this.focus.x + this.range)), sketch.random((this.focus.y - this.range), (this.focus.y + this.range)));
       this.speed = sketch.random(0.2, 1.0);
-      this.dest = [sketch.random((this.focus[0] - this.range), (this.focus[0] + this.range)), sketch.random((this.focus[1] - this.range), (this.focus[1] + this.range))];
+      this.dest = sketch.createVector(sketch.random((this.focus.x - this.range), (this.focus.x + this.range)), sketch.random((this.focus.y - this.range), (this.focus.y + this.range)));
       this.opac = 0;
       this.opacmax = sketch.random(50, 225);
       //data from returned NLP JSON
@@ -156,27 +182,43 @@ var thisP5 = new p5 ( function( sketch ) {
     }
 
     updateCoord() {
-      if (sketch.dist(this.coord[0], this.coord[1], this.dest[0], this.dest[1]) > 1.0) {
-        if(this.coord[0] < this.dest[0] && this.coord[1] < this.dest[1]) {
-          this.coord[0] += this.speed;
-          this.coord[1] += this.speed;
+      if (sketch.dist(this.coord.x, this.coord.y, this.dest.x, this.dest.y) > 0.0) {
+        if(this.coord.x < this.dest.x && this.coord.y < this.dest.y) {
+          this.coord.x += this.speed;
+          this.coord.y += this.speed;
         }
-        else if (this.coord[0] > this.dest[0] && this.coord[1] > this.dest[1]) {
-          this.coord[0] -= this.speed;
-          this.coord[1] -= this.speed;
+        else if (this.coord.x > this.dest.x && this.coord.y > this.dest.y) {
+          this.coord.x -= this.speed;
+          this.coord.y -= this.speed;
         }
-        else if (this.coord[0] > this.dest[0] && this.coord[1] < this.dest[1]) {
-          this.coord[0] -= this.speed;
-          this.coord[1] += this.speed;
+        else if (this.coord.x > this.dest.x && this.coord.y < this.dest.y) {
+          this.coord.x -= this.speed;
+          this.coord.y += this.speed;
         }
-        else if (this.coord[0] < this.dest[0] && this.coord[1] > this.dest[1]) {
-          this.coord[0] += this.speed;
-          this.coord[1] -= this.speed;
+        else if (this.coord.x < this.dest.x && this.coord.y > this.dest.y) {
+          this.coord.x += this.speed;
+          this.coord.y -= this.speed;
         }
       }
-      if (sketch.dist(this.coord[0], this.coord[1], this.dest[0], this.dest[1]) <= 1.0) {
-        this.setDest(sketch.random((this.focus[0] - this.range), (this.focus[0] + this.range)), sketch.random((this.focus[1] - this.range), (this.focus[1] + this.range)))
+      if (sketch.dist(this.coord.x, this.coord.y, this.dest.x, this.dest.y) <= 1.0 ||
+          sketch.dist(this.coord.x, this.coord.y, this.dest.x, this.dest.y) <= 0.0 ) {
+        this.setDest(sketch.random((this.focus.x - this.range), (this.focus.x + this.range)), sketch.random((this.focus.y - this.range), (this.focus.y + this.range)))
       }
+    }
+    renderIn() {
+
+      if (this.opac < this.opacmax) {
+        this.opac += this.speed;
+      }
+      sketch.textAlign(sketch.CENTER);
+      sketch.textSize(20);
+      sketch.fill(255, this.opac);
+      sketch.text(this.text, this.coord.x, this.coord.y);
+      this.updateCoord();
+    } 
+   
+    setSpeed(speed) {
+      this.speed = speed;
     }
 
     setRange (range) {
@@ -184,25 +226,41 @@ var thisP5 = new p5 ( function( sketch ) {
     }
 
     setFocus(x, y) {
-      this.focus[0] = x;
-      this.focus[1] = y;
+      this.focus.x = x;
+      this.focus.y = y;
     }
 
     setDest(x, y) {
-      this.dest[0] = x;
-      this.dest[1] = y;
+      this.dest.x = x;
+      this.dest.y = y;
     }
 
-    renderIn() {
+    getPos() {
+      return this.pos;
+    }
 
-      if (this.opac < this.opacmax) {
-        this.opac += this.speed;
-      }
-      sketch.textAlign(sketch.CENTER);
-      sketch.textSize(30);
-      sketch.fill(255, this.opac);
-      sketch.text(this.text, this.coord[0], this.coord[1]);
-      this.updateCoord();
+  };
+
+  class grouping {
+    constructor(x, y, range){
+      this.loc = sketch.createVector(x, y);
+      this.range = 50;
+      this.opacity = 255;
+    }
+
+    setRange(range) {
+      this.range = range;
+    }
+
+    setLoc(x, y) {
+      this.loc.x = x;
+      this.loc.y = y;
+    }
+
+    renderGrouping() {
+      sketch.fill(119, 76, 96, 150);
+      //sketch.stroke(255);
+      sketch.ellipse(this.loc.x, this.loc.y, this.range*2, this.range*2);
     }
 
   };
