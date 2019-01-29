@@ -44,14 +44,19 @@ var thisP5 = new p5 ( function( sketch ) {
 
     separator = sketch.createButton('Scribalize!');
     separator.mousePressed(sketch.separatorTrigger);
-    separator.position(0, 100);
+    separator.position(0, 50);
     separator.hide();
+
+    toggleText = sketch.createCheckbox('Toggle Text', true);
+    toggleText.position(0, 100);
+    toggleText.hide();
   };
 
   //main draw thread, renders things inside canvas
   sketch.draw = function() {
 
-    sketch.background(26,20,35);
+    //sketch.background(26,20,35);
+    sketch.background(255);
     sketch.textSize(20);
     // sketch.text(sketch.frameRate(), window.innerWidth - 50, 50);
     if (speechLoaded == false && loadFade == true && textVal != max ) {
@@ -98,12 +103,11 @@ var thisP5 = new p5 ( function( sketch ) {
       }
     }
   console.log(tagList);
-  var tagLoc = [sketch.random(window.innerWidth/2 - 450, window.innerWidth/2 + 450), sketch.random(window.innerHeight/2 - 450, window.innerHeight/2 + 450)];
   groupings = []; 
+  var tagLoc = [sketch.random(window.innerWidth/2 - 300, window.innerWidth/2 + 300), sketch.random(window.innerHeight/2 - 300, window.innerHeight/2 + 300)];
     for (var i = 0; i < tagList.length; i++) {
-      sketch.changeWordFoci(tagLoc, tagList[i]);
-      groupings.push(new grouping(tagLoc[0], tagLoc[1], 50));
-      tagLoc = [sketch.random(window.innerWidth/2 - 450, window.innerWidth/2 + 450), sketch.random(window.innerHeight/2 - 450, window.innerHeight/2 + 450)];
+      sketch.changeWordFoci(tagLoc, tagList[i], i);
+      tagLoc = [sketch.random(window.innerWidth/2 - 300, window.innerWidth/2 + 300), sketch.random(window.innerHeight/2 - 300, window.innerHeight/2 + 300)];
     }
     console.log(groupings);
   }
@@ -144,6 +148,7 @@ var thisP5 = new p5 ( function( sketch ) {
 
     sketch.buildWordArray(speechData);
     separator.show();
+    toggleText.show();
   };
 
   //create new instance of word for each token in NLP JSON
@@ -153,11 +158,13 @@ var thisP5 = new p5 ( function( sketch ) {
     };
   };
 
-  sketch.changeWordFoci = function(focus, tag) {
+  sketch.changeWordFoci = function(focus, tag, group) {
+    groupings.push(new grouping(focus[0], focus[1], 50, tag));
     for (var i = 0; i < wordList.length; i++) {
        if (wordList[i].getPos() == tag) {
+         groupings[group].addChild(wordList[i]);
          wordList[i].setFocus(focus[0], focus[1]);
-         wordList[i].setSpeed(sketch.random(0.2, 1.0));
+         //wordList[i].setSpeed(sketch.random(0.2, 1.0));
        }
     }
   }
@@ -170,7 +177,7 @@ var thisP5 = new p5 ( function( sketch ) {
       this.range = 50;
       this.show = true;
       this.coord = sketch.createVector(sketch.random((this.focus.x - this.range), (this.focus.x + this.range)), sketch.random((this.focus.y - this.range), (this.focus.y + this.range)));
-      this.speed = sketch.random(0.2, 1.0);
+      this.speed = 1.0; //sketch.random(0.2, 1.0);
       this.dest = sketch.createVector(sketch.random((this.focus.x - this.range), (this.focus.x + this.range)), sketch.random((this.focus.y - this.range), (this.focus.y + this.range)));
       this.opac = 0;
       this.opacmax = sketch.random(50, 225);
@@ -210,10 +217,12 @@ var thisP5 = new p5 ( function( sketch ) {
       if (this.opac < this.opacmax) {
         this.opac += this.speed;
       }
-      sketch.textAlign(sketch.CENTER);
-      sketch.textSize(20);
-      sketch.fill(255, this.opac);
-      sketch.text(this.text, this.coord.x, this.coord.y);
+      if (toggleText.checked() == false) {
+        sketch.textAlign(sketch.CENTER);
+        sketch.textSize(20);
+        sketch.fill(0, this.opac);
+        sketch.text(this.text, this.coord.x, this.coord.y);
+      }
       this.updateCoord();
     } 
    
@@ -235,6 +244,10 @@ var thisP5 = new p5 ( function( sketch ) {
       this.dest.y = y;
     }
 
+    getCoord() {
+      return this.coord;
+    } 
+
     getPos() {
       return this.pos;
     }
@@ -242,10 +255,17 @@ var thisP5 = new p5 ( function( sketch ) {
   };
 
   class grouping {
-    constructor(x, y, range){
+    constructor(x, y, range, word){
       this.loc = sketch.createVector(x, y);
       this.range = 50;
       this.opacity = 255;
+      this.range = range;
+      this.word = word;
+      this.children = [];
+    }
+
+    addChild(child) {
+      this.children.push(child);
     }
 
     setRange(range) {
@@ -258,9 +278,22 @@ var thisP5 = new p5 ( function( sketch ) {
     }
 
     renderGrouping() {
+
+      sketch.fill(119, 76, 96, 255);
+      sketch.textAlign(sketch.CENTER);
+      sketch.textSize(20);
+      sketch.text(this.word, this.loc.x, this.loc.y - (this.range + 20));
+
       sketch.fill(119, 76, 96, 150);
-      //sketch.stroke(255);
       sketch.ellipse(this.loc.x, this.loc.y, this.range*2, this.range*2);
+      
+      for (var i = 0; i < this.children.length; i++) {
+        if (sketch.dist(this.loc.x, this.loc.y, this.children[i].getCoord().x, this.children[i].getCoord().y) < this.range) {
+          sketch.stroke(255, 100);
+          sketch.line(this.loc.x, this.loc.y, this.children[i].getCoord().x, this.children[i].getCoord().y);
+          sketch.noStroke();
+        }
+      }
     }
 
   };
