@@ -2,6 +2,7 @@
 import psycopg2 as psql
 import speech_recognition as asr
 import librosa.core as rosa
+import subprocess
 import sys
 import os
 from os import path
@@ -28,8 +29,8 @@ def _analyze(file_path, recon):
                 duration = rosa.get_duration(filename=norm_path)
                 templist = recon.recognize_sphinx(audio)
                 templist = templist.split()
-                templist = " ".join(templist)
                 wordcount = len(templist)
+                templist = " ".join(templist)
                 print("Word Count:", wordcount)
                 print("Duration:", duration, "seconds.")
                 print("Words Per Minute:",
@@ -55,10 +56,12 @@ def _WPM_calculate(wordcount, duration):
         WPM = frac_dur*wordcount
         return WPM
 
+
 def _check_duplicates(path):
-    connection = psql.connect("dbname=asrdb user=postgres")
+    connection = psql.connect("dbname=asrdb user=postgres password=postgang")
     cursor = connection.cursor()
-    cursor.execute("SELECT file_path FROM asr_data WHERE file_path = %s", (path,))
+    cursor.execute("SELECT file_path FROM asr_data WHERE file_path = %s",
+                   (path,))
     desc = cursor.rowcount
     if desc == 0:
         cursor.close()
@@ -70,11 +73,12 @@ def _check_duplicates(path):
         print("Element already in DataBase.")
         return True
 
+
 def _store_data(file_path, text_data):
-    connection = psql.connect("dbname=asrdb user=postgres")
+    connection = psql.connect("dbname=asrdb user=postgres password=postgang")
     cursor = connection.cursor()
     cursor.execute("INSERT INTO asr_data (file_path, raw_data) VALUES (%s, %s)",
-        (file_path, text_data))
+                   (file_path, text_data))
     connection.commit()
     cursor.close()
     connection.close()

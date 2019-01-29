@@ -7,7 +7,7 @@ function processFile(file) {
 
     var file_path = file.file.path;
     var scribacus_path = dataPath + '/scribacus.py'
-    const scribacus = spawn('python3', [scribacus_path, file_path]);
+    const scribacus = spawn('python', [scribacus_path, file_path]);
     scribacus.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);
     });
@@ -27,7 +27,7 @@ function processFile(file) {
   function onAnalyze(file_path) {
     
     var scribalizer_path = dataPath + '/scribalizer.py'
-    const scribalizer= spawn('python3', [scribalizer_path, file_path]);
+    const scribalizer= spawn('python', [scribalizer_path, file_path]);
     let chunks = [];
 
     scribalizer.stdout.on('data', (data) => {

@@ -6,9 +6,11 @@ import sys
 import psycopg2 as psql
 import spacy
 
+
 def main():
     file_path = sys.argv[1]
     _analyze(file_path)
+
 
 def _analyze(path):
     connection = psql.connect("dbname=asrdb user=postgres")
@@ -21,11 +23,12 @@ def _analyze(path):
     connection.close() 
     _structure_data(doc, path)
 
+
 def _structure_data(doc, path):
 
     features = {}
     features.setdefault(0, {"text", "dep", "pos"})
-    
+   
     for i, item in enumerate(doc):
         features[i] = {"text": item.lemma_, 
                         "dep": item.dep_,
@@ -42,5 +45,6 @@ def _structure_data(doc, path):
     # connection.commit()
     # cursor.close()
     # connection.close() 
+
 
 main()
