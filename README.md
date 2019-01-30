@@ -1,14 +1,5 @@
 # Scribacus
-A tool for transcribing and getting a words-per-minute count from speech in .wav files. 
-
-# Scribe + Abacus = Scribacus
-transcribing and counting words so you don't have to!
-
-# Usage
-`python scribacus.py '/path/to/folder'`
-
-on Windows, it looks more like:\
-`python scribacus.py 'drive:\path\to\folder'`
+A trinket that makes art out of NLP data, derived from speech samples of your choice! 
 
 # Dependencies
 
