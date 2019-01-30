@@ -1,5 +1,16 @@
 var thisP5 = new p5 ( function( sketch ) { 
 
+  //colour palette
+  var colours = [
+    sketch.color('#1c77c3'),
+    sketch.color('#39a9db'),
+    sketch.color('#40bcd8'),
+    sketch.color('#f39237'),
+    sketch.color('#d63230'),
+    sketch.color('#a20021'),
+    sketch.color('#f52f57')
+  ];
+
   //markov_aurelius variables
   var markov_aurelius;
   var sentence;
@@ -104,10 +115,10 @@ var thisP5 = new p5 ( function( sketch ) {
     }
   console.log(tagList);
   groupings = []; 
-  var tagLoc = [sketch.random(window.innerWidth/2 - 300, window.innerWidth/2 + 300), sketch.random(window.innerHeight/2 - 300, window.innerHeight/2 + 300)];
+  var tagLoc = [sketch.random(0 , window.innerWidth), sketch.random(0, window.innerHeight)];
     for (var i = 0; i < tagList.length; i++) {
       sketch.changeWordFoci(tagLoc, tagList[i], i);
-      tagLoc = [sketch.random(window.innerWidth/2 - 300, window.innerWidth/2 + 300), sketch.random(window.innerHeight/2 - 300, window.innerHeight/2 + 300)];
+      tagLoc = [sketch.random(0, window.innerWidth), sketch.random(0, window.innerHeight)];
     }
     console.log(groupings);
   }
@@ -159,7 +170,7 @@ var thisP5 = new p5 ( function( sketch ) {
   };
 
   sketch.changeWordFoci = function(focus, tag, group) {
-    groupings.push(new grouping(focus[0], focus[1], 50, tag));
+    groupings.push(new grouping(focus[0], focus[1], 700, tag));
     for (var i = 0; i < wordList.length; i++) {
        if (wordList[i].getPos() == tag) {
          groupings[group].addChild(wordList[i]);
@@ -174,14 +185,16 @@ var thisP5 = new p5 ( function( sketch ) {
     //drawing variables, location, destination, opacity, speed, and whether it is to be shown or not.
     constructor(txt, dp, ps) {
       this.focus = sketch.createVector(window.innerWidth/2, window.innerHeight/2);
-      this.range = 50;
+      this.range = 700;
       this.show = true;
       this.coord = sketch.createVector(sketch.random((this.focus.x - this.range), (this.focus.x + this.range)), sketch.random((this.focus.y - this.range), (this.focus.y + this.range)));
-      this.speed = 1.0; //sketch.random(0.2, 1.0);
+      this.speed = 0.2; //sketch.random(0.2, 1.0);
       this.dest = sketch.createVector(sketch.random((this.focus.x - this.range), (this.focus.x + this.range)), sketch.random((this.focus.y - this.range), (this.focus.y + this.range)));
       this.opac = 0;
       this.opacmax = sketch.random(50, 225);
       //data from returned NLP JSON
+      this.color = sketch.random(colours);
+      this.color.setAlpha(100);
       this.text = txt;
       this.dep = dp;
       //refers to position in speech, not position in sketch. that is the property of this.coord.
@@ -210,6 +223,7 @@ var thisP5 = new p5 ( function( sketch ) {
       if (sketch.dist(this.coord.x, this.coord.y, this.dest.x, this.dest.y) <= 1.0 ||
           sketch.dist(this.coord.x, this.coord.y, this.dest.x, this.dest.y) <= 0.0 ) {
         this.setDest(sketch.random((this.focus.x - this.range), (this.focus.x + this.range)), sketch.random((this.focus.y - this.range), (this.focus.y + this.range)))
+        this.color = sketch.random(colours);
       }
     }
     renderIn() {
@@ -220,7 +234,7 @@ var thisP5 = new p5 ( function( sketch ) {
       if (toggleText.checked() == false) {
         sketch.textAlign(sketch.CENTER);
         sketch.textSize(20);
-        sketch.fill(0, this.opac);
+        sketch.fill(0, 255);
         sketch.text(this.text, this.coord.x, this.coord.y);
       }
       this.updateCoord();
@@ -248,6 +262,10 @@ var thisP5 = new p5 ( function( sketch ) {
       return this.coord;
     } 
 
+    getDest() {
+      return this.dest;
+    }
+
     getPos() {
       return this.pos;
     }
@@ -257,12 +275,15 @@ var thisP5 = new p5 ( function( sketch ) {
   class grouping {
     constructor(x, y, range, word){
       this.loc = sketch.createVector(x, y);
-      this.range = 50;
+      this.range = 400;
       this.opacity = 255;
       this.range = range;
       this.word = word;
       this.children = [];
+      this.color = sketch.random(colours)
+      this.color.setAlpha(25);
     }
+    
 
     addChild(child) {
       this.children.push(child);
@@ -278,19 +299,29 @@ var thisP5 = new p5 ( function( sketch ) {
     }
 
     renderGrouping() {
-
-      sketch.fill(119, 76, 96, 255);
-      sketch.textAlign(sketch.CENTER);
-      sketch.textSize(20);
-      sketch.text(this.word, this.loc.x, this.loc.y - (this.range + 20));
-
-      sketch.fill(119, 76, 96, 150);
+      if (toggleText.checked() == false) {
+        sketch.fill(this.color, 255);
+        sketch.textAlign(sketch.CENTER);
+        sketch.textSize(20);
+        sketch.text(this.word, this.loc.x, this.loc.y - (this.range + 20));
+      }
+      sketch.fill(this.color, 150);
       sketch.ellipse(this.loc.x, this.loc.y, this.range*2, this.range*2);
       
       for (var i = 0; i < this.children.length; i++) {
         if (sketch.dist(this.loc.x, this.loc.y, this.children[i].getCoord().x, this.children[i].getCoord().y) < this.range) {
-          sketch.stroke(255, 100);
-          sketch.line(this.loc.x, this.loc.y, this.children[i].getCoord().x, this.children[i].getCoord().y);
+          sketch.stroke(this.children[i].color, 255);
+          sketch.strokeWeight(3);
+          // sketch.line(this.loc.x, this.loc.y, this.children[i].getCoord().x, this.children[i].getCoord().y);
+          
+          // sketch.line(this.children[i].getCoord().x, this.children[i].getCoord().y, this.children[i].getDest().x, this.children[i].getDest().y);
+          sketch.noStroke();
+          sketch.triangle(
+            this.loc.x, this.loc.y,
+            this.children[i].getCoord().x, this.children[i].getCoord().y,
+            this.children[i].getDest().x, this.children[i].getDest().y
+          );
+
           sketch.noStroke();
         }
       }
